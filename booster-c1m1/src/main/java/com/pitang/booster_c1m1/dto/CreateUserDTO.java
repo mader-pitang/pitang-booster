@@ -1,0 +1,22 @@
+package com.pitang.booster_c1m1.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+
+@Getter
+@Setter
+public class CreateUserDTO {
+    @NotBlank(message = "Name is required")
+    private String name;
+
+    @Email(message = "Email should be valid")
+    @NotBlank(message = "Email is required")
+    private String email;
+
+    @NotBlank(message = "Password is required")
+    @Min(value = 6, message = "Password must be at least 6 characters long")
+    private String password;
+}
