@@ -65,8 +65,33 @@ public class UserService {
         return MAPPER.toUserDTO(savedUser);
     }
 
-    public void deleteUser(long id) {
+    public UserDTO updateUser(Long id, CreateUserDTO createUserDTO) {
+        log.debug("Attempting to update user with id: {}", id);
+        User existingUser = userRepository.findById(id).orElseThrow(() -> {
+            log.warn("User not found with id: {}", id);
+            return new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        });
+
+        if (userRepository.existsByEmailAndIdNot(createUserDTO.getEmail(), id)) {
+            log.warn("Attempt to update user with existing email: {}", createUserDTO.getEmail());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
+        }
+
+        MAPPER.updateUserFromDTO(createUserDTO, existingUser);
+        User updatedUser = userRepository.save(existingUser);
+        log.info("User updated successfully with id: {} and email: {}", updatedUser.getId(), updatedUser.getEmail());
+
+        return MAPPER.toUserDTO(updatedUser);
+    }
+
+    public void deleteUser(Long id) {
         log.debug("Attempting to delete user with id: {}", id);
+
+        if (id == null || id <= 0) {
+            log.warn("Invalid user id provided for deletion: {}", id);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID");
+        }
+
         if (!userRepository.existsById(id)) {
             log.warn("Attempt to delete non-existent user with id: {}", id);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");

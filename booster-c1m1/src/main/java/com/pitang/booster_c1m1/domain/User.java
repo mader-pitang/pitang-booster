@@ -29,4 +29,6 @@ public class User {
   private String email;
   
   private String createdAt;
+
+  private String updatedAt;
 }

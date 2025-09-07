@@ -10,5 +10,6 @@ import com.pitang.booster_c1m1.domain.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
   boolean existsByEmail(String email);
+  boolean existsByEmailAndIdNot(String email, Long id);
   Page<User> findByNameContainingIgnoreCase(String name, Pageable pageable);
 }
