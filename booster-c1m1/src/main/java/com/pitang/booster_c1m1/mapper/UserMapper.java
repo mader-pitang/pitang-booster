@@ -18,7 +18,7 @@ public interface UserMapper {
     @Mapping(target = "updatedAt", ignore = true)
     User toUser(CreateUserDTO createUserDTO);
 
-    UserDTO toUserDTO(User user);
+    UserDTO toDto(User user);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
