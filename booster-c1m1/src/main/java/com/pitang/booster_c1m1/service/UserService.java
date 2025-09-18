@@ -35,7 +35,7 @@ public class UserService {
             users = userRepository.findAll(pageable);
             log.debug("Found {} total users", users.getTotalElements());
         }
-        return users.map(MAPPER::toUserDTO);
+        return users.map(MAPPER::toDto);
     }
 
     public UserDTO getUserById(Long id) {
@@ -46,7 +46,7 @@ public class UserService {
                     return new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
                 });
         log.debug("User found: {}", user.getEmail());
-        return MAPPER.toUserDTO(user);
+        return MAPPER.toDto(user);
     }
 
     public UserDTO createUser(CreateUserDTO createUserDTO) {
@@ -62,7 +62,7 @@ public class UserService {
         User savedUser = userRepository.save(user);
         log.info("User created successfully with id: {} and email: {}", savedUser.getId(), savedUser.getEmail());
 
-        return MAPPER.toUserDTO(savedUser);
+        return MAPPER.toDto(savedUser);
     }
 
     public UserDTO updateUser(Long id, CreateUserDTO createUserDTO) {
@@ -78,10 +78,11 @@ public class UserService {
         }
 
         MAPPER.updateUserFromDTO(createUserDTO, existingUser);
+        existingUser.setUpdatedAt(Instant.now().toString());
         User updatedUser = userRepository.save(existingUser);
         log.info("User updated successfully with id: {} and email: {}", updatedUser.getId(), updatedUser.getEmail());
 
-        return MAPPER.toUserDTO(updatedUser);
+        return MAPPER.toDto(updatedUser);
     }
 
     public void deleteUser(Long id) {
