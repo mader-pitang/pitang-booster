@@ -3,6 +3,7 @@ package com.pitang.booster_c1m1.controller;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -29,6 +30,11 @@ import com.pitang.booster_c1m1.dto.PaginatedResponseDTO;
 import com.pitang.booster_c1m1.dto.UserDTO;
 import com.pitang.booster_c1m1.mapper.UserMapper;
 import com.pitang.booster_c1m1.service.UserService;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import jakarta.validation.ConstraintViolation;
+import java.util.Set;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserController")
@@ -37,7 +43,6 @@ public class UserControllerTest {
   @Mock
   private UserService userService;
 
-  @Mock
   private UserMapper userMapper = UserMapper.INSTANCE;
 
   @InjectMocks
@@ -174,6 +179,7 @@ public class UserControllerTest {
     verify(userService).getUserById(userId);
   }
 
+  @SuppressWarnings("null")
   @Test
   @DisplayName("Should create user when successful")
   void createUser_CreatesUser_WhenSuccessful() {
@@ -181,21 +187,153 @@ public class UserControllerTest {
     createUserDTO.setName("New User");
     createUserDTO.setEmail("newuser@email.com");
     createUserDTO.setPassword("password123");
-    User createdUser = User.builder()
-        .id(3L)
-        .name(createUserDTO.getName())
-        .email(createUserDTO.getEmail())
-        .createdAt(Instant.now().toString())
-        .updatedAt(Instant.now().toString())
-        .build();
-    UserDTO createdUserDTO = userMapper.toDto(createdUser);
+
+    UserDTO createdUserDTO = new UserDTO();
+    createdUserDTO.setId(1L);
+    createdUserDTO.setName("New User");
+    createdUserDTO.setEmail("newuser@email.com");
+    createdUserDTO.setCreatedAt(Instant.now().toString());
+    createdUserDTO.setUpdatedAt(Instant.now().toString());
 
     when(userService.createUser(createUserDTO)).thenReturn(createdUserDTO);
 
     ResponseEntity<UserDTO> response = userController.createUser(createUserDTO);
-
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody()).isEqualTo(createdUserDTO);
+    assertThat(response.getBody().getName()).isEqualTo("New User");
+    assertThat(response.getBody().getEmail()).isEqualTo("newuser@email.com");
+    assertThat(response.getBody().getId()).isNotNull();
+    verify(userService).createUser(createUserDTO);
+  }
+
+  @Test
+  @DisplayName("Should update user when successful")
+  void updateUser_UpdatesUser_WhenSuccessful() {
+    Long userId = 1L;
+    CreateUserDTO updateDTO = new CreateUserDTO();
+    updateDTO.setName("Updated Name");
+    updateDTO.setEmail("updated@email.com");
+    updateDTO.setPassword("newpass");
+
+    UserDTO updatedUserDTO = new UserDTO();
+    updatedUserDTO.setId(userId);
+    updatedUserDTO.setName("Updated Name");
+    updatedUserDTO.setEmail("updated@email.com");
+    updatedUserDTO.setCreatedAt(user.getCreatedAt());
+    updatedUserDTO.setUpdatedAt(Instant.now().toString());
+
+    when(userService.updateUser(userId, updateDTO)).thenReturn(updatedUserDTO);
+
+    ResponseEntity<UserDTO> response = userController.updateUser(userId, updateDTO);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody()).isEqualTo(updatedUserDTO);
+    verify(userService).updateUser(userId, updateDTO);
+  }
+
+  @Test
+  @DisplayName("Should return 409 when updating with an email already in use")
+  void updateUser_Returns409_WhenEmailConflict() {
+    Long userId = 1L;
+    CreateUserDTO updateDTO = new CreateUserDTO();
+    updateDTO.setName("Another");
+    updateDTO.setEmail("existing@email.com");
+    updateDTO.setPassword("pass");
+
+    when(userService.updateUser(userId, updateDTO))
+        .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use"));
+
+    assertThatThrownBy(() -> userController.updateUser(userId, updateDTO))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("status", HttpStatus.CONFLICT)
+        .hasMessageContaining("Email already in use");
+
+    verify(userService).updateUser(userId, updateDTO);
+  }
+
+  @Test
+  @DisplayName("Should return 404 when updating non-existent user")
+  void updateUser_Returns404_WhenUserNotFound() {
+    Long userId = 999L;
+    CreateUserDTO updateDTO = new CreateUserDTO();
+    updateDTO.setName("No One");
+    updateDTO.setEmail("noone@email.com");
+    updateDTO.setPassword("pass");
+
+    when(userService.updateUser(userId, updateDTO))
+        .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    assertThatThrownBy(() -> userController.updateUser(userId, updateDTO))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND)
+        .hasMessageContaining("User not found");
+
+    verify(userService).updateUser(userId, updateDTO);
+  }
+
+  @Test
+  @DisplayName("Should delete user when successful")
+  void deleteUser_DeletesUser_WhenSuccessful() {
+    Long userId = 1L;
+
+    ResponseEntity<Void> response = userController.deleteUser(userId);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    assertThat(response.getBody()).isNull();
+    verify(userService).deleteUser(userId);
+  }
+
+  @Test
+  @DisplayName("Should return 404 when deleting non-existent user")
+  void deleteUser_Returns404_WhenUserNotFound() {
+    Long userId = 999L;
+    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")).when(userService).deleteUser(userId);
+
+    assertThatThrownBy(() -> userController.deleteUser(userId))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND)
+        .hasMessageContaining("User not found");
+
+    verify(userService).deleteUser(userId);
+  }
+
+  @Test
+  @DisplayName("Should return 400 when deleting with invalid id")
+  void deleteUser_Returns400_WhenInvalidId() {
+    Long invalidId = 0L;
+    doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID")).when(userService)
+        .deleteUser(invalidId);
+
+    assertThatThrownBy(() -> userController.deleteUser(invalidId))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasFieldOrPropertyWithValue("status", HttpStatus.BAD_REQUEST)
+        .hasMessageContaining("Invalid user ID");
+
+    verify(userService).deleteUser(invalidId);
+  }
+
+  @Test
+  @DisplayName("Should fail validation when update DTO is invalid")
+  void updateUser_Returns400_WhenInvalidInput() {
+    CreateUserDTO invalidDTO = new CreateUserDTO();
+    invalidDTO.setName("");
+    invalidDTO.setEmail("invalid-email");
+    invalidDTO.setPassword("123");
+
+    ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    Validator validator = factory.getValidator();
+    Set<ConstraintViolation<CreateUserDTO>> violations = validator.validate(invalidDTO);
+
+    assertThat(violations).isNotEmpty();
+    assertThat(violations)
+        .anyMatch(v -> v.getMessage().contains("Name is required") || v.getPropertyPath().toString().equals("name"));
+    assertThat(violations).anyMatch(
+        v -> v.getMessage().contains("Email should be valid") || v.getPropertyPath().toString().equals("email"));
+    assertThat(violations).anyMatch(v -> v.getMessage().contains("Password must be at least 6 characters long")
+        || v.getPropertyPath().toString().equals("password"));
+
+    verify(userService, org.mockito.Mockito.never()).updateUser(org.mockito.Mockito.anyLong(),
+        org.mockito.Mockito.any());
   }
 }

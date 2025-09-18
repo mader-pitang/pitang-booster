@@ -48,21 +48,25 @@ class UserServiceTest {
   @BeforeEach
   void setUp() {
     pageable = PageRequest.of(0, 10);
-    user = new User();
-    user.setId(1L);
-    user.setName("João Silva");
-    user.setEmail("joao@email.com");
-    user.setCreatedAt(Instant.now().toString());
+    user = User.builder()
+        .id(1L)
+        .name("João Silva")
+        .email("joao@email.com")
+        .createdAt(Instant.now().toString())
+        .updatedAt(Instant.now().toString())
+        .build();
 
     createUserDTO = new CreateUserDTO();
     createUserDTO.setName("João Silva");
     createUserDTO.setEmail("joao@email.com");
 
-    anotherUser = new User();
-    anotherUser.setId(2L);
-    anotherUser.setName("Maria Souza");
-    anotherUser.setEmail("maria@email.com");
-    anotherUser.setCreatedAt(Instant.now().toString());
+    anotherUser = User.builder()
+        .id(2L)
+        .name("Maria Souza")
+        .email("maria@email.com")
+        .createdAt(Instant.now().toString())
+        .updatedAt(Instant.now().toString())
+        .build();
 
     anotherCreateUserDTO = new CreateUserDTO();
     anotherCreateUserDTO.setName("Maria Souza");
