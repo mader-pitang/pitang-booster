@@ -183,10 +183,11 @@ public class UserControllerTest {
   @Test
   @DisplayName("Should create user when successful")
   void createUser_CreatesUser_WhenSuccessful() {
-    CreateUserDTO createUserDTO = new CreateUserDTO();
-    createUserDTO.setName("New User");
-    createUserDTO.setEmail("newuser@email.com");
-    createUserDTO.setPassword("password123");
+    CreateUserDTO createUserDTO = CreateUserDTO.builder()
+        .name("New User")
+        .email("newuser@email.com")
+        .password("password123")
+        .build();
 
     UserDTO createdUserDTO = new UserDTO();
     createdUserDTO.setId(1L);
@@ -210,10 +211,11 @@ public class UserControllerTest {
   @DisplayName("Should update user when successful")
   void updateUser_UpdatesUser_WhenSuccessful() {
     Long userId = 1L;
-    CreateUserDTO updateDTO = new CreateUserDTO();
-    updateDTO.setName("Updated Name");
-    updateDTO.setEmail("updated@email.com");
-    updateDTO.setPassword("newpass");
+    CreateUserDTO updateDTO = CreateUserDTO.builder()
+        .name("Updated Name")
+        .email("updated@email.com")
+        .password("newpass")
+        .build();
 
     UserDTO updatedUserDTO = new UserDTO();
     updatedUserDTO.setId(userId);
@@ -236,10 +238,11 @@ public class UserControllerTest {
   @DisplayName("Should return 409 when updating with an email already in use")
   void updateUser_Returns409_WhenEmailConflict() {
     Long userId = 1L;
-    CreateUserDTO updateDTO = new CreateUserDTO();
-    updateDTO.setName("Another");
-    updateDTO.setEmail("existing@email.com");
-    updateDTO.setPassword("pass");
+    CreateUserDTO updateDTO = CreateUserDTO.builder()
+        .name("Another")
+        .email("existing@email.com")
+        .password("pass")
+        .build();
 
     when(userService.updateUser(userId, updateDTO))
         .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use"));
@@ -256,10 +259,11 @@ public class UserControllerTest {
   @DisplayName("Should return 404 when updating non-existent user")
   void updateUser_Returns404_WhenUserNotFound() {
     Long userId = 999L;
-    CreateUserDTO updateDTO = new CreateUserDTO();
-    updateDTO.setName("No One");
-    updateDTO.setEmail("noone@email.com");
-    updateDTO.setPassword("pass");
+    CreateUserDTO updateDTO = CreateUserDTO.builder()
+        .name("No One")
+        .email("noone@email.com")
+        .password("pass")
+        .build();
 
     when(userService.updateUser(userId, updateDTO))
         .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -316,10 +320,11 @@ public class UserControllerTest {
   @Test
   @DisplayName("Should fail validation when update DTO is invalid")
   void updateUser_Returns400_WhenInvalidInput() {
-    CreateUserDTO invalidDTO = new CreateUserDTO();
-    invalidDTO.setName("");
-    invalidDTO.setEmail("invalid-email");
-    invalidDTO.setPassword("123");
+    CreateUserDTO invalidDTO = CreateUserDTO.builder()
+        .name("")
+        .email("invalid-email")
+        .password("123")
+        .build();
 
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();

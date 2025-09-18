@@ -56,9 +56,11 @@ class UserServiceTest {
         .updatedAt(Instant.now().toString())
         .build();
 
-    createUserDTO = new CreateUserDTO();
-    createUserDTO.setName("João Silva");
-    createUserDTO.setEmail("joao@email.com");
+    createUserDTO = CreateUserDTO.builder()
+        .name("João Silva")
+        .email("joao@email.com")
+        .password("password123")
+        .build();
 
     anotherUser = User.builder()
         .id(2L)
@@ -68,9 +70,11 @@ class UserServiceTest {
         .updatedAt(Instant.now().toString())
         .build();
 
-    anotherCreateUserDTO = new CreateUserDTO();
-    anotherCreateUserDTO.setName("Maria Souza");
-    anotherCreateUserDTO.setEmail("maria@email.com");
+    anotherCreateUserDTO = CreateUserDTO.builder()
+        .name("Maria Souza")
+        .email("maria@email.com")
+        .password("password456")
+        .build();
   }
 
   @Test

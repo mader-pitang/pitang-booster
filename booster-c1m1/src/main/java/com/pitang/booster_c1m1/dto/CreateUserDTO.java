@@ -1,11 +1,13 @@
 package com.pitang.booster_c1m1.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.NotBlank;
 
+@Builder
 @Getter
 @Setter
 public class CreateUserDTO {
