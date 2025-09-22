@@ -29,12 +29,29 @@ import com.pitang.booster_c1m1.dto.CreateUserDTO;
 import com.pitang.booster_c1m1.dto.UserDTO;
 import com.pitang.booster_c1m1.repository.UserRepository;
 
+import io.micrometer.core.instrument.Counter;
+
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService")
 class UserServiceTest {
 
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private Counter userCreatedCounter;
+
+  @Mock
+  private Counter userUpdatedCounter;
+
+  @Mock
+  private Counter userDeletedCounter;
+
+  @Mock
+  private Counter userNotFoundCounter;
+
+  @Mock
+  private Counter emailConflictCounter;
 
   @InjectMocks
   private UserService userService;
@@ -144,6 +161,8 @@ class UserServiceTest {
     assertThat(result.getId()).isEqualTo(1L);
     assertThat(result.getName()).isEqualTo("João Silva");
     verify(userRepository).findById(1L);
+    // Verify metrics counter is NOT incremented for successful find
+    verify(userNotFoundCounter, never()).increment();
   }
 
   @Test
@@ -154,6 +173,7 @@ class UserServiceTest {
         .isInstanceOf(ResponseStatusException.class)
         .hasMessageContaining("User not found");
     verify(userRepository).findById(1L);
+    verify(userNotFoundCounter).increment();
   }
 
   @Test
@@ -166,6 +186,8 @@ class UserServiceTest {
     assertThat(result.getName()).isEqualTo("João Silva");
     assertThat(result.getEmail()).isEqualTo("joao@email.com");
     verify(userRepository).save(any(User.class));
+    verify(userCreatedCounter).increment();
+    verify(emailConflictCounter, never()).increment();
   }
 
   @Test
@@ -177,6 +199,8 @@ class UserServiceTest {
         .hasMessageContaining("Email already in use");
     verify(userRepository).existsByEmail("joao@email.com");
     verify(userRepository, never()).save(any(User.class));
+    verify(emailConflictCounter).increment();
+    verify(userCreatedCounter, never()).increment();
   }
 
   @Test
@@ -227,6 +251,8 @@ class UserServiceTest {
     when(userRepository.existsById(1L)).thenReturn(true);
     userService.deleteUser(1L);
     verify(userRepository).deleteById(1L);
+    verify(userDeletedCounter).increment();
+    verify(userNotFoundCounter, never()).increment();
   }
 
   @Test
@@ -238,6 +264,8 @@ class UserServiceTest {
         .hasMessageContaining("User not found");
     verify(userRepository).existsById(1L);
     verify(userRepository, never()).deleteById(any(Long.class));
+    verify(userNotFoundCounter).increment();
+    verify(userDeletedCounter, never()).increment();
   }
 
   @Test
@@ -248,5 +276,7 @@ class UserServiceTest {
         .hasMessageContaining("Invalid user ID");
     verify(userRepository, never()).existsById(any(Long.class));
     verify(userRepository, never()).deleteById(any(Long.class));
+    verify(userDeletedCounter, never()).increment();
+    verify(userNotFoundCounter, never()).increment();
   }
 }
