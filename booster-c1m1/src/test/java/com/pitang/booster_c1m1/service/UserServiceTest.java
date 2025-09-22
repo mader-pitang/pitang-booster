@@ -53,7 +53,6 @@ class UserServiceTest {
   @Mock
   private Counter emailConflictCounter;
 
-  @InjectMocks
   private UserService userService;
 
   private User user;
@@ -92,6 +91,15 @@ class UserServiceTest {
         .email("maria@email.com")
         .password("password456")
         .build();
+
+    userService = new UserService(
+        userRepository,
+        userCreatedCounter,
+        userUpdatedCounter,
+        userDeletedCounter,
+        userNotFoundCounter,
+        emailConflictCounter
+    );
   }
 
   @Test
@@ -161,7 +169,6 @@ class UserServiceTest {
     assertThat(result.getId()).isEqualTo(1L);
     assertThat(result.getName()).isEqualTo("João Silva");
     verify(userRepository).findById(1L);
-    // Verify metrics counter is NOT incremented for successful find
     verify(userNotFoundCounter, never()).increment();
   }
 
