@@ -44,21 +44,24 @@ jobs:
 
     - name: Run unit tests
       run: mvn clean test
+      working-directory: ./booster-c1m1
       env:
         SPRING_PROFILES_ACTIVE: test
 
     - name: Run integration tests
       run: mvn verify
+      working-directory: ./booster-c1m1
       env:
         SPRING_PROFILES_ACTIVE: test
 
     - name: Generate code coverage report
       run: mvn jacoco:report
+      working-directory: ./booster-c1m1
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
       with:
-        file: ./target/site/jacoco/jacoco.xml
+        file: ./booster-c1m1/target/site/jacoco/jacoco.xml
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
@@ -85,17 +88,21 @@ jobs:
 
     - name: Compile project
       run: mvn clean compile
+      working-directory: ./booster-c1m1
 
     - name: Run Checkstyle
       run: mvn checkstyle:check
+      working-directory: ./booster-c1m1
       continue-on-error: true
 
     - name: Run PMD
       run: mvn pmd:check
+      working-directory: ./booster-c1m1
       continue-on-error: true
 
     - name: Run SpotBugs
       run: mvn spotbugs:check
+      working-directory: ./booster-c1m1
       continue-on-error: true
 
   build:
@@ -121,6 +128,7 @@ jobs:
 
     - name: Build application
       run: mvn clean package -DskipTests
+      working-directory: ./booster-c1m1
 
     - name: Build Docker image
       run: docker build -t booster-c1m1:${{ github.sha }} .
@@ -130,7 +138,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: jar-artifact
-        path: target/*.jar
+        path: booster-c1m1/target/*.jar
 
   openapi-validation:
     runs-on: ubuntu-latest
@@ -172,11 +180,11 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: jar-artifact
-        path: target/
+        path: booster-c1m1/target/
 
     - name: Start application
       run: |
-        java -jar target/*.jar &
+        java -jar booster-c1m1/target/*.jar &
         APP_PID=$!
         echo "APP_PID=$APP_PID" >> $GITHUB_ENV
         sleep 30
