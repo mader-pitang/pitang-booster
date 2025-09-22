@@ -47,12 +47,18 @@ jobs:
       working-directory: ./booster-c1m1
       env:
         SPRING_PROFILES_ACTIVE: test
+        POSTGRES_DB: testdb
+        POSTGRES_USER: test
+        POSTGRES_PASSWORD: test
 
     - name: Run integration tests
       run: mvn verify
       working-directory: ./booster-c1m1
       env:
         SPRING_PROFILES_ACTIVE: test
+        POSTGRES_DB: testdb
+        POSTGRES_USER: test
+        POSTGRES_PASSWORD: test
 
     - name: Generate code coverage report
       run: mvn jacoco:report
@@ -191,6 +197,9 @@ jobs:
       env:
         SPRING_PROFILES_ACTIVE: test
         SERVER_PORT: 8080
+        POSTGRES_DB: testdb
+        POSTGRES_USER: test
+        POSTGRES_PASSWORD: test
 
     - name: Validate OpenAPI spec
       run: |
