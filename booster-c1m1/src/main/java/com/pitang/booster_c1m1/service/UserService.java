@@ -1,0 +1,117 @@
+package com.pitang.booster_c1m1.service;
+
+import java.time.Instant;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.pitang.booster_c1m1.domain.User;
+import com.pitang.booster_c1m1.dto.CreateUserDTO;
+import com.pitang.booster_c1m1.dto.UserDTO;
+import com.pitang.booster_c1m1.mapper.UserMapper;
+import com.pitang.booster_c1m1.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import io.micrometer.core.instrument.Counter;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class UserService {
+    private static final UserMapper MAPPER = UserMapper.INSTANCE;
+
+    private final UserRepository userRepository;
+    private final Counter userCreatedCounter;
+    private final Counter userUpdatedCounter;
+    private final Counter userDeletedCounter;
+    private final Counter userNotFoundCounter;
+    private final Counter emailConflictCounter;
+
+    public Page<UserDTO> getAllUsers(Pageable pageable, String name) {
+        log.debug("Fetching users from database - name filter: {}", name);
+        Page<User> users;
+        if (name != null) {
+            users = userRepository.findByNameContainingIgnoreCase(name, pageable);
+            log.debug("Found {} users matching name '{}'", users.getTotalElements(), name);
+        } else {
+            users = userRepository.findAll(pageable);
+            log.debug("Found {} total users", users.getTotalElements());
+        }
+        return users.map(MAPPER::toDto);
+    }
+
+    public UserDTO getUserById(Long id) {
+        log.debug("Searching for user with id: {}", id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> {
+                    userNotFoundCounter.increment();
+                    log.warn("User not found with id: {}", id);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+                });
+        log.debug("User found: {}", user.getEmail());
+        return MAPPER.toDto(user);
+    }
+
+    public UserDTO createUser(CreateUserDTO createUserDTO) {
+        log.debug("Attempting to create user with email: {}", createUserDTO.getEmail());
+        User user = MAPPER.toUser(createUserDTO);
+
+        if (userRepository.existsByEmail(user.getEmail())) {
+            emailConflictCounter.increment();
+            log.warn("Attempt to create user with existing email: {}", user.getEmail());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
+        }
+
+        user.setCreatedAt(Instant.now().toString());
+        User savedUser = userRepository.save(user);
+        userCreatedCounter.increment();
+        log.info("User created successfully with id: {} and email: {}", savedUser.getId(), savedUser.getEmail());
+
+        return MAPPER.toDto(savedUser);
+    }
+
+    public UserDTO updateUser(Long id, CreateUserDTO createUserDTO) {
+        log.debug("Attempting to update user with id: {}", id);
+        User existingUser = userRepository.findById(id).orElseThrow(() -> {
+            userNotFoundCounter.increment();
+            log.warn("User not found with id: {}", id);
+            return new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        });
+
+        if (userRepository.existsByEmailAndIdNot(createUserDTO.getEmail(), id)) {
+            emailConflictCounter.increment();
+            log.warn("Attempt to update user with existing email: {}", createUserDTO.getEmail());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
+        }
+
+        MAPPER.updateUserFromDTO(createUserDTO, existingUser);
+        existingUser.setUpdatedAt(Instant.now().toString());
+        User updatedUser = userRepository.save(existingUser);
+        userUpdatedCounter.increment();
+        log.info("User updated successfully with id: {} and email: {}", updatedUser.getId(), updatedUser.getEmail());
+
+        return MAPPER.toDto(updatedUser);
+    }
+
+    public void deleteUser(Long id) {
+        log.debug("Attempting to delete user with id: {}", id);
+
+        if (id == null || id <= 0) {
+            log.warn("Invalid user id provided for deletion: {}", id);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID");
+        }
+
+        if (!userRepository.existsById(id)) {
+            userNotFoundCounter.increment();
+            log.warn("Attempt to delete non-existent user with id: {}", id);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        userRepository.deleteById(id);
+        userDeletedCounter.increment();
+        log.info("User with id {} deleted successfully", id);
+    }
+}
