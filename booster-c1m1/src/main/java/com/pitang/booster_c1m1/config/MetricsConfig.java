@@ -46,6 +46,34 @@ public class MetricsConfig {
     }
 
     @Bean
+    public Counter productCreatedCounter(MeterRegistry meterRegistry) {
+        return Counter.builder("products.created.total")
+                .description("Total number of products created")
+                .register(meterRegistry);
+    }
+
+    @Bean
+    public Counter productUpdatedCounter(MeterRegistry meterRegistry) {
+        return Counter.builder("products.updated.total")
+                .description("Total number of products updated")
+                .register(meterRegistry);
+    }
+
+    @Bean
+    public Counter productDeletedCounter(MeterRegistry meterRegistry) {
+        return Counter.builder("products.deleted.total")
+                .description("Total number of products deleted")
+                .register(meterRegistry);
+    }
+
+    @Bean
+    public Counter productNotFoundCounter(MeterRegistry meterRegistry) {
+        return Counter.builder("products.not_found.total")
+                .description("Total number of product not found errors")
+                .register(meterRegistry);
+    }
+
+    @Bean
     public Timer databaseQueryTimer(MeterRegistry meterRegistry) {
         return Timer.builder("database.query.duration")
                 .description("Database query execution time")
