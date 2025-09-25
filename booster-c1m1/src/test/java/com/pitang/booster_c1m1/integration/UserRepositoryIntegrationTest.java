@@ -130,7 +130,7 @@ public class UserRepositoryIntegrationTest {
     @Test
     @DisplayName("Should check if email exists for different user when email exists for another user")
     void existsByEmailAndIdNot_ReturnsTrue_WhenEmailExistsForAnotherUser() {
-        User savedUser = userRepository.save(testUser);
+        userRepository.save(testUser);
         User savedAnotherUser = userRepository.save(anotherUser);
 
         boolean exists = userRepository.existsByEmailAndIdNot("joao@example.com", savedAnotherUser.getId());
