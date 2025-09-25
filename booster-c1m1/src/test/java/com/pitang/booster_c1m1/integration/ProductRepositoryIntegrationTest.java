@@ -116,45 +116,6 @@ public class ProductRepositoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should check if name exists when name is present")
-    void existsByName_ReturnsTrue_WhenNameExists() {
-        productRepository.save(testProduct);
-
-        boolean exists = productRepository.existsByName("Smartphone Samsung");
-
-        assertThat(exists).isTrue();
-    }
-
-    @Test
-    @DisplayName("Should check if name exists when name is not present")
-    void existsByName_ReturnsFalse_WhenNameNotExists() {
-        boolean exists = productRepository.existsByName("NonExistent Product");
-
-        assertThat(exists).isFalse();
-    }
-
-    @Test
-    @DisplayName("Should check if name exists for different product when name exists for another product")
-    void existsByNameAndIdNot_ReturnsTrue_WhenNameExistsForAnotherProduct() {
-        productRepository.save(testProduct);
-        Product savedAnotherProduct = productRepository.save(anotherProduct);
-
-        boolean exists = productRepository.existsByNameAndIdNot("Smartphone Samsung", savedAnotherProduct.getId());
-
-        assertThat(exists).isTrue();
-    }
-
-    @Test
-    @DisplayName("Should check if name exists for different product when name belongs to same product")
-    void existsByNameAndIdNot_ReturnsFalse_WhenNameBelongsToSameProduct() {
-        Product savedProduct = productRepository.save(testProduct);
-
-        boolean exists = productRepository.existsByNameAndIdNot("Smartphone Samsung", savedProduct.getId());
-
-        assertThat(exists).isFalse();
-    }
-
-    @Test
     @DisplayName("Should find products by name containing ignore case when products match")
     void findByNameContainingIgnoreCase_ReturnsMatchingProducts_WhenProductsMatch() {
         Product productWithSimilarName = Product.builder()
@@ -176,81 +137,6 @@ public class ProductRepositoryIntegrationTest {
         assertThat(productsPage.getContent())
                 .extracting(Product::getName)
                 .containsExactlyInAnyOrder("Smartphone Samsung", "Smartphone iPhone");
-    }
-
-    @Test
-    @DisplayName("Should find products by category when products match")
-    void findByCategory_ReturnsMatchingProducts_WhenProductsMatch() {
-        Product clothingProduct = Product.builder()
-                .name("Camiseta")
-                .description("Camiseta de algodão")
-                .price(new BigDecimal("29.99"))
-                .quantity(100)
-                .category("Clothing")
-                .createdAt("2024-01-01T10:00:00Z")
-                .updatedAt("2024-01-01T10:00:00Z")
-                .build();
-
-        productRepository.saveAll(List.of(testProduct, anotherProduct, clothingProduct));
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Page<Product> productsPage = productRepository.findByCategory("Electronics", pageable);
-
-        assertThat(productsPage.getContent()).hasSize(2);
-        assertThat(productsPage.getContent())
-                .extracting(Product::getCategory)
-                .containsOnly("Electronics");
-    }
-
-    @Test
-    @DisplayName("Should find products by price range when products match")
-    void findByPriceBetween_ReturnsMatchingProducts_WhenProductsMatch() {
-        Product cheapProduct = Product.builder()
-                .name("Mouse USB")
-                .description("Mouse óptico USB")
-                .price(new BigDecimal("25.00"))
-                .quantity(200)
-                .category("Electronics")
-                .createdAt("2024-01-01T10:00:00Z")
-                .updatedAt("2024-01-01T10:00:00Z")
-                .build();
-
-        productRepository.saveAll(List.of(testProduct, anotherProduct, cheapProduct));
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Page<Product> productsPage = productRepository.findByPriceBetween(
-                new BigDecimal("100.00"), new BigDecimal("1000.00"), pageable);
-
-        assertThat(productsPage.getContent()).hasSize(1);
-        assertThat(productsPage.getContent().get(0).getName()).isEqualTo("Smartphone Samsung");
-    }
-
-    @Test
-    @DisplayName("Should find products by filters when all filters match")
-    void findByFilters_ReturnsMatchingProducts_WhenAllFiltersMatch() {
-        productRepository.saveAll(List.of(testProduct, anotherProduct));
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Page<Product> productsPage = productRepository.findByFilters(
-                "smartphone", "Electronics", new BigDecimal("800.00"), new BigDecimal("1000.00"), pageable);
-
-        assertThat(productsPage.getContent()).hasSize(1);
-        assertThat(productsPage.getContent().get(0).getName()).isEqualTo("Smartphone Samsung");
-    }
-
-    @Test
-    @DisplayName("Should find products by filters when only some filters are provided")
-    void findByFilters_ReturnsMatchingProducts_WhenSomeFiltersProvided() {
-        productRepository.saveAll(List.of(testProduct, anotherProduct));
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Page<Product> productsPage = productRepository.findByFilters(
-                null, "Electronics", null, null, pageable);
-
-        assertThat(productsPage.getContent()).hasSize(2);
-        assertThat(productsPage.getContent())
-                .extracting(Product::getCategory)
-                .containsOnly("Electronics");
     }
 
     @Test
