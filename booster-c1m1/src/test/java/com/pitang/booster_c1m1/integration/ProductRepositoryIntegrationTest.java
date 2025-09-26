@@ -14,15 +14,14 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
 
+import com.pitang.booster_c1m1.config.BaseIntegrationTest;
 import com.pitang.booster_c1m1.domain.Product;
 import com.pitang.booster_c1m1.repository.ProductRepository;
 
 @DataJpaTest
-@ActiveProfiles("test")
 @DisplayName("ProductRepository Integration Tests")
-public class ProductRepositoryIntegrationTest {
+public class ProductRepositoryIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private ProductRepository productRepository;
