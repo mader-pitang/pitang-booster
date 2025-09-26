@@ -13,15 +13,13 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
-
+import com.pitang.booster_c1m1.config.BaseIntegrationTest;
 import com.pitang.booster_c1m1.domain.User;
 import com.pitang.booster_c1m1.repository.UserRepository;
 
 @DataJpaTest
-@ActiveProfiles("test")
 @DisplayName("UserRepository Integration Tests")
-public class UserRepositoryIntegrationTest {
+public class UserRepositoryIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;

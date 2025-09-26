@@ -13,21 +13,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pitang.booster_c1m1.config.BaseIntegrationTest;
 import com.pitang.booster_c1m1.domain.User;
 import com.pitang.booster_c1m1.dto.CreateUserDTO;
 import com.pitang.booster_c1m1.repository.UserRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
 @Transactional
 @DisplayName("UserController Integration Tests")
-public class UserControllerIntegrationTest {
+public class UserControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
